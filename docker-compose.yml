@@ -1,0 +1,47 @@
+version: "2.2"
+
+services:
+  my-service:
+    build: ./service
+    depends_on:
+      - "my-db"
+    networks:
+      - backend
+      - frontend
+
+  my-web:
+    build: ./web
+    networks:
+      - frontend
+
+  my-proxy:
+    image: nginx:1.17
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - "my-web"
+      - "my-service"
+    networks:
+      - frontend
+
+  my-db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./my-db:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
